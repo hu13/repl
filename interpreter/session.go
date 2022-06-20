@@ -43,7 +43,7 @@ List of REPL commands:
 `
 const moduleTemplate = `module shell
 
-go 1.13
+go 1.17
 
 %s
 `
@@ -189,6 +189,9 @@ func NewSession(workingDirectory string) (*Interpreter, error) {
 		indents:        0,
 	}
 	currentModule := getModuleNameOfCurrentProject(workingDirectory)
+	if currentModule != "" {
+		fmt.Println("current module:", currentModule)
+	}
 	if err = session.createModule(workingDirectory, currentModule); err != nil {
 		return nil, err
 	}
@@ -266,6 +269,13 @@ func (s *Interpreter) eval() string {
 	if err != nil {
 		return fmt.Sprintf("%s %s\n", string(out), err.Error())
 	}
+
+	cmdGoMod := exec.Command("go", "mod", "tidy", "-compat=1.17")
+	out, err = cmdGoMod.CombinedOutput()
+	if err != nil {
+		return fmt.Sprintf("%s %s\n", string(out), err.Error())
+	}
+
 	cmdRun := exec.Command("go", "run", "main.go")
 	out, err = cmdRun.CombinedOutput()
 	if err != nil {
